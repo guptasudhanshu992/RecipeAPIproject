@@ -2,8 +2,8 @@
 Serializers for the user API view
 """
 from django.contrib.auth import get_user_model
-
 from rest_framework import serializers
+
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for the user object."""
@@ -17,8 +17,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """Create and return a user with encrypted password."""
-        password = validated_data.pop('password')  # Remove password from validated_data
+        password = validated_data.pop('password')
         user = get_user_model().objects.create_user(**validated_data)
-        user.set_password(password)  # Set the password
+        user.set_password(password)
         user.save()
         return user
