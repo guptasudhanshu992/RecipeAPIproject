@@ -38,7 +38,6 @@ const Cart = {
   },
 
   addItem(product) {
-    alert("item added");
     let items = this.getItems();
     const index = items.findIndex(item => item.id === product.id);
     if (index > -1) {
@@ -47,7 +46,6 @@ const Cart = {
       items.push({ ...product, quantity: product.quantity || 1 });
     }
     this.saveItems(items);
-    
   },
 
   removeItem(productId) {
@@ -129,12 +127,15 @@ function renderCart(containerId) {
   }
 
   container.innerHTML = items.map(item => `
-    <tr class="cart-item" data-id="prod-101">
-      <td><img src="${item.image}" alt="${item.title}" class="img-thumbnail" /></td>
-      <td>${item.title}</td>
-      <td class="price">$${item.price.toFixed(2)}</td>
-      <td><button class="btn btn-sm btn-danger" onclick="Cart.removeItem('prod-101'); renderCartTable('cart-items');">Remove</button></td>
-    </tr>
+    <div class="cart-item" data-id="${item.id}">
+      <img src="${item.image}" alt="${item.title}" />
+      <div>
+        <h4>${item.title}</h4>
+        <p>$${item.price.toFixed(2)}</p>
+        <input type="number" min="1" value="${item.quantity}" onchange="Cart.updateQuantity('${item.id}', this.value)">
+        <button onclick="Cart.removeItem('${item.id}'); renderCart('${containerId}')">Remove</button>
+      </div>
+    </div>
   `).join('');
 }
 
@@ -160,58 +161,4 @@ function renderWishlist(containerId) {
       </div>
     </div>
   `).join('');
-}
-
-function renderCartTable(tableBodyId) {
-  const items = Cart.getItems();
-  const container = document.getElementById(tableBodyId);
-  if (!container) return;
-
-  if (items.length === 0) {
-    container.innerHTML = `<tr><td colspan="4">Your cart is empty.</td></tr>`;
-    updateSummary(0); // also update summary
-    return;
-  }
-
-  let subtotal = 0;
-
-  container.innerHTML = items.map(item => {
-    const totalItemPrice = item.price * item.quantity;
-    subtotal += totalItemPrice;
-
-    return `
-      <tr class="cart-item" data-id="${item.id}">
-        <td><img src="${item.image}" alt="${item.title}" class="img-thumbnail" style="max-width: 80px;" /></td>
-        <td>${item.title}</td>
-        <td class="price" data-price="${totalItemPrice.toFixed(2)}">$${totalItemPrice.toFixed(2)}</td>
-        <td><span class="remove-btn" onclick="Cart.removeItem('${item.id}'); renderCartTable('${tableBodyId}');">Remove</span></td>
-      </tr>
-    `;
-  }).join('');
-
-  updateSummary(subtotal);
-}
-
-let discountAmount = 0;
-
-function updateSummary(subtotal) {
-  document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
-  document.getElementById('discount').textContent = `-$${discountAmount.toFixed(2)}`;
-  document.getElementById('total').textContent = `$${(subtotal - discountAmount).toFixed(2)}`;
-}
-
-function applyDiscount() {
-  const coupon = document.getElementById('couponInput').value.trim();
-  if (coupon.toLowerCase() === "save10") {
-    discountAmount = 10;
-    document.getElementById('discountMessage').textContent = "Coupon 'SAVE10' applied successfully!";
-  } else {
-    discountAmount = 0;
-    document.getElementById('discountMessage').textContent = "Invalid coupon code.";
-  }
-
-  // Recalculate summary using actual cart data
-  const items = Cart.getItems();
-  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  updateSummary(subtotal);
 }
